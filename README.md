@@ -1,2 +1,2 @@
 # furry-con-data
-Tool to supply csvs for furry convention data visualization at coyo.tl
+Tool to create csv's backing furry convention data visualizations at coyo.tl
