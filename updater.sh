@@ -1,6 +1,6 @@
 cd /home/ubuntu/data_muncher
 
-if !$(git diff --quiet)
+if git diff --quiet
   then
     git pull
     ruby data_processor.rb
