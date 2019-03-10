@@ -6,5 +6,5 @@ Updating the visualization is as easy as a pull request! Simply create a new CSV
 
 To summarize:
 
-|Year of event|Date of final Sunday of event|Attendance|
-| | |
+Year of event|Date of final Sunday of event|Attendance
+ --- | --- | --- 
