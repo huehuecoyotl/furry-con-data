@@ -3,7 +3,7 @@
 cd /home/ubuntu/data_muncher
 
 git remote update
-if git status -uno
+if !(git status -uno | grep -q "Your branch is up to date with 'origin/master'.")
 then
     git pull
     ./data_processor.rb
