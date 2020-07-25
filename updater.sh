@@ -2,7 +2,7 @@
 
 cd /home/ubuntu/data_muncher
 
-if git diff --quiet
+if !(git pull | grep "Already up to date.")
 then
     git pull
     ./data_processor.rb
