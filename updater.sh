@@ -2,8 +2,11 @@
 
 cd /home/ubuntu/data_muncher
 
-git pull
-./data_processor.rb
+if git diff --quiet
+then
+    git pull
+    ./data_processor.rb
+fi
 cp ./processed_data/* /home/ubuntu/coyotl/source/public/data/
 
 cd -
