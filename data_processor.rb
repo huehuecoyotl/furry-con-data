@@ -145,7 +145,7 @@ def generate_calYear_csv(attendances, actual_output, pretty_csvs, sorted_con_nam
     (min_year .. min_years[con_name] - 1).each { |x| curr_row << 0.0 }
     
     pretty_csvs[con_name].each do |year, specific_data|
-      actual_output[curr_con_name + '-calYear'] << (specific_data.attendance / totals_for_year[year]) unless (specific_data.attendance == "*")
+      actual_output[con_name + '-calYear'] << (specific_data.attendance / totals_for_year[year]) unless (specific_data.attendance == "*")
       curr_row << ((specific_data.attendance == "*") ? "*" : (specific_data.attendance / totals_for_year[year]))
     end
 
@@ -234,7 +234,7 @@ def generate_twelveMonths_csv(attendances_by_dates, actual_output, pretty_csvs, 
     (min_year .. min_years[con_name] - 1).each { |x| curr_row << 0.0 }
     
     pretty_csvs[con_name].each do |year, specific_data|
-      actual_output[curr_con_name + '-twelveMonths'] << (specific_data.attendance / totals_for_date[specific_data.date]) unless (specific_data.attendance == "*")
+      actual_output[con_name + '-twelveMonths'] << (specific_data.attendance / totals_for_date[specific_data.date]) unless (specific_data.attendance == "*")
       curr_row << ((specific_data.attendance == "*") ? "*" : (specific_data.attendance / totals_for_date[specific_data.date]))
     end
 
