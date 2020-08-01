@@ -34,7 +34,7 @@ end
 # pr
 def prettify_data(all_csvs)
   pretty_data = Hash.new { |hash, key| hash[key] = Hash.new { |h, k| h[k] = ConYear.new } }
-  actual_output = Hash.new { |hash, key| hash[key] = nil }
+  actual_output = Hash.new { |hash, key| hash[key] = Array.new() }
 
   all_csvs.each do |curr_con|
     curr_con_name = curr_con[0][0]
