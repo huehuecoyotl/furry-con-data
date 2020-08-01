@@ -8,6 +8,7 @@
 
 require 'csv'
 require 'date'
+require 'json'
 
 class String
     def is_i?
@@ -40,7 +41,7 @@ def prettify_data(all_csvs)
     curr_con.each do |curr_year|
       next unless curr_year[0].is_i?
 
-      unless date == "*" || attendance == "*"
+      unless curr_year[1] == "*" || curr_year[2] == "*"
         curr_date = Date.strptime(curr_year[1], "%m/%d/%Y")
         curr_date_int = Integer(curr_date.strftime("%j")) - 1
         curr_date_year = Integer(curr_date.strftime("%Y"))
