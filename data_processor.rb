@@ -265,17 +265,17 @@ twelveMonths_csv = generate_twelveMonths_csv(attendance_by_date, actual_output, 
 
 Dir.chdir('processed_data')
 
-CSV.open("attendance.csv", "w") do |csv|
-  attendance_csv.each { |x| csv << x }
-end
+# CSV.open("attendance.csv", "w") do |csv|
+#   attendance_csv.each { |x| csv << x }
+# end
 
-CSV.open("calYear.csv", "w") do |csv|
-  calYear_csv.each { |x| csv << x }
-end
+# CSV.open("calYear.csv", "w") do |csv|
+#   calYear_csv.each { |x| csv << x }
+# end
 
-CSV.open("twelveMonths.csv", "w") do |csv|
-  twelveMonths_csv.each { |x| csv << x }
-end
+# CSV.open("twelveMonths.csv", "w") do |csv|
+#   twelveMonths_csv.each { |x| csv << x }
+# end
 
 File.open("all_data.json", "w") do |fout|
    fout.syswrite JSON.pretty_generate(actual_output)
