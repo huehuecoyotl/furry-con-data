@@ -33,17 +33,28 @@ end
 # pr
 def prettify_data(all_csvs)
   pretty_data = Hash.new { |hash, key| hash[key] = Hash.new { |h, k| h[k] = ConYear.new } }
+  actual_output = Hash.new { |hash, key| hash[key] = nil }
 
   all_csvs.each do |curr_con|
     curr_con_name = curr_con[0][0]
     curr_con.each do |curr_year|
       next unless curr_year[0].is_i?
 
+      unless date == "*" || attendance == "*"
+        curr_date = Date.strptime(curr_year[1], "%m/%d/%Y")
+        curr_date_int = Integer(curr_date.strftime("%j")) - 1
+        curr_date_year = Integer(curr_date.strftime("%Y"))
+        curr_date_int = Date.gregorian_leap?(curr_date_year) ? curr_date_year + (curr_date_int / 366) : curr_date_year + (curr_date_int / 365)
+
+        actual_output[curr_con_name + '-date'] << curr_date_int
+        actual_output[curr_con_name + '-attendance'] << Integer(curr_year[2])
+      end
+
       pretty_data[curr_con_name][Integer(curr_year[0])].set_data(curr_year[1], curr_year[2])
     end
   end
 
-  pretty_data
+  pretty_data, actual_output
 end
 
 def get_max_attendances(pretty_csvs)
@@ -112,7 +123,7 @@ def generate_attendance_csv(pretty_csvs, sorted_con_names, max_years, max_year, 
   return attendances.transpose, dates.transpose
 end
 
-def generate_calYear_csv(attendances, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
+def generate_calYear_csv(attendances, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
   calYear = Array.new
   calYear << ["YEAR"]
   calYear[0].concat (min_year .. max_year).to_a
@@ -133,6 +144,7 @@ def generate_calYear_csv(attendances, pretty_csvs, sorted_con_names, max_years, 
     (min_year .. min_years[con_name] - 1).each { |x| curr_row << 0.0 }
     
     pretty_csvs[con_name].each do |year, specific_data|
+      actual_output[curr_con_name + '-calYear'] << (specific_data.attendance / totals_for_year[year]) unless (specific_data.attendance == "*")
       curr_row << ((specific_data.attendance == "*") ? "*" : (specific_data.attendance / totals_for_year[year]))
     end
 
@@ -141,7 +153,7 @@ def generate_calYear_csv(attendances, pretty_csvs, sorted_con_names, max_years, 
     calYear << curr_row
   end
 
-  calYear.transpose
+  calYear.transpose, actual_output
 end
 
 def generate_by_date_attendances(attendance_csv, dates, sorted_con_names, pretty_csvs)
@@ -197,7 +209,7 @@ def generate_by_date_attendances(attendance_csv, dates, sorted_con_names, pretty
   attendance_by_date.transpose
 end
 
-def generate_twelveMonths_csv(attendances_by_dates, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
+def generate_twelveMonths_csv(attendances_by_dates, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
   twelveMonths = Array.new
   twelveMonths << ["YEAR"]
   twelveMonths[0].concat (min_year .. max_year).to_a
@@ -221,6 +233,7 @@ def generate_twelveMonths_csv(attendances_by_dates, pretty_csvs, sorted_con_name
     (min_year .. min_years[con_name] - 1).each { |x| curr_row << 0.0 }
     
     pretty_csvs[con_name].each do |year, specific_data|
+      actual_output[curr_con_name + '-twelveMonths'] << (specific_data.attendance / totals_for_date[specific_data.date]) unless (specific_data.attendance == "*")
       curr_row << ((specific_data.attendance == "*") ? "*" : (specific_data.attendance / totals_for_date[specific_data.date]))
     end
 
@@ -229,7 +242,7 @@ def generate_twelveMonths_csv(attendances_by_dates, pretty_csvs, sorted_con_name
     twelveMonths << curr_row
   end
 
-  twelveMonths.transpose
+  twelveMonths.transpose, actual_output
 end
 
 all_csvs = Array.new
@@ -239,15 +252,15 @@ Dir.foreach('raw_data') do |filename|
   all_csvs << CSV.read("raw_data/" + filename)
 end
 
-pretty_csvs = prettify_data all_csvs
+pretty_csvs, actual_output = prettify_data all_csvs
 
 max_attendances, max_years, max_year, min_years, min_year = get_max_attendances pretty_csvs
 sorted_con_names = (max_attendances.sort_by { |k, v| -v }).map { |n| n[0] }
 
 attendance_csv, dates = generate_attendance_csv(pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
-calYear_csv = generate_calYear_csv(attendance_csv, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
+calYear_csv = generate_calYear_csv(attendance_csv, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
 attendance_by_date = generate_by_date_attendances(attendance_csv, dates, sorted_con_names, pretty_csvs)
-twelveMonths_csv = generate_twelveMonths_csv(attendance_by_date, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
+twelveMonths_csv = generate_twelveMonths_csv(attendance_by_date, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
 
 Dir.chdir('processed_data')
 
@@ -261,4 +274,8 @@ end
 
 CSV.open("twelveMonths.csv", "w") do |csv|
   twelveMonths_csv.each { |x| csv << x }
+end
+
+File.open("all_data.json", "w") do |fout|
+   fout.syswrite JSON.pretty_generate(actual_output)
 end
