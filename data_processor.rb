@@ -259,23 +259,23 @@ max_attendances, max_years, max_year, min_years, min_year = get_max_attendances 
 sorted_con_names = (max_attendances.sort_by { |k, v| -v }).map { |n| n[0] }
 
 attendance_csv, dates = generate_attendance_csv(pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
-calYear_csv = generate_calYear_csv(attendance_csv, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
+calYear_csv, actual_output = generate_calYear_csv(attendance_csv, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
 attendance_by_date = generate_by_date_attendances(attendance_csv, dates, sorted_con_names, pretty_csvs)
-twelveMonths_csv = generate_twelveMonths_csv(attendance_by_date, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
+twelveMonths_csv, actual_output = generate_twelveMonths_csv(attendance_by_date, actual_output, pretty_csvs, sorted_con_names, max_years, max_year, min_years, min_year)
 
 Dir.chdir('processed_data')
 
-# CSV.open("attendance.csv", "w") do |csv|
-#   attendance_csv.each { |x| csv << x }
-# end
+CSV.open("attendance.csv", "w") do |csv|
+  attendance_csv.each { |x| csv << x }
+end
 
-# CSV.open("calYear.csv", "w") do |csv|
-#   calYear_csv.each { |x| csv << x }
-# end
+CSV.open("calYear.csv", "w") do |csv|
+  calYear_csv.each { |x| csv << x }
+end
 
-# CSV.open("twelveMonths.csv", "w") do |csv|
-#   twelveMonths_csv.each { |x| csv << x }
-# end
+CSV.open("twelveMonths.csv", "w") do |csv|
+  twelveMonths_csv.each { |x| csv << x }
+end
 
 File.open("all_data.json", "w") do |fout|
    fout.syswrite JSON.pretty_generate(actual_output)
