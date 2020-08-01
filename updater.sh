@@ -8,6 +8,6 @@ then
     git pull
     ./data_processor.rb
 fi
-cp ./processed_data/* /home/ubuntu/coyotl/source/public/data/
+cp ./viz_data.json /home/ubuntu/coyotl/source/public/data/
 
 cd -

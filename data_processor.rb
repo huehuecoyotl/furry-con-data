@@ -209,8 +209,6 @@ actualOutput["sortOrder"] = sortedConNames
 actualOutput = generate_calendar_year_data(formattedData, actualOutput)
 actualOutput = generate_twelve_months_data(formattedData, actualOutput)
 
-Dir.chdir('processed_data')
-
 File.open("viz_data.json", "w") do |fout|
    fout.syswrite JSON.pretty_generate(actualOutput)
 end
