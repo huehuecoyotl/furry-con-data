@@ -54,7 +54,7 @@ def prettify_data(all_csvs)
     end
   end
 
-  pretty_data, actual_output
+  return pretty_data, actual_output
 end
 
 def get_max_attendances(pretty_csvs)
