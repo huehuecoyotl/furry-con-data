@@ -45,7 +45,7 @@ def prettify_data(all_csvs)
         curr_date = Date.strptime(curr_year[1], "%m/%d/%Y")
         curr_date_int = Integer(curr_date.strftime("%j"), 10) - 1
         curr_date_year = Integer(curr_date.strftime("%Y"))
-        curr_date_int = Date.gregorian_leap?(curr_date_year) ? curr_date_year + (curr_date_int / 366) : curr_date_year + (curr_date_int / 365)
+        curr_date_int = Date.gregorian_leap?(curr_date_year) ? curr_date_year + (curr_date_int.to_f / 366) : curr_date_year + (curr_date_int.to_f / 365)
 
         actual_output[curr_con_name + '-date'] << curr_date_int
         actual_output[curr_con_name + '-attendance'] << Integer(curr_year[2])
@@ -145,7 +145,10 @@ def generate_calYear_csv(attendances, actual_output, pretty_csvs, sorted_con_nam
     (min_year .. min_years[con_name] - 1).each { |x| curr_row << 0.0 }
     
     pretty_csvs[con_name].each do |year, specific_data|
-      actual_output[con_name + '-calYear'] << (specific_data.attendance / totals_for_year[year]) unless (specific_data.attendance == "*")
+      curr_act_out = (specific_data.attendance / totals_for_year[year]) unless (specific_data.attendance == "*")
+      unless curr_act_out == nil || curr_act_out == Float::NAN || curr_act_out == 0.0
+        actual_output[con_name + '-calYear'] << curr_act_out
+      end
       curr_row << ((specific_data.attendance == "*") ? "*" : (specific_data.attendance / totals_for_year[year]))
     end
 
@@ -234,7 +237,10 @@ def generate_twelveMonths_csv(attendances_by_dates, actual_output, pretty_csvs, 
     (min_year .. min_years[con_name] - 1).each { |x| curr_row << 0.0 }
     
     pretty_csvs[con_name].each do |year, specific_data|
-      actual_output[con_name + '-twelveMonths'] << (specific_data.attendance / totals_for_date[specific_data.date]) unless (specific_data.attendance == "*")
+      curr_act_out = (specific_data.attendance / totals_for_date[specific_data.date]) unless (specific_data.attendance == "*")
+      unless curr_act_out == nil || curr_act_out == Float::NAN || curr_act_out == 0.0
+        actual_output[con_name + '-calYear'] << curr_act_out
+      end
       curr_row << ((specific_data.attendance == "*") ? "*" : (specific_data.attendance / totals_for_date[specific_data.date]))
     end
 
