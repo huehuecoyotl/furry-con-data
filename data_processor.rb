@@ -153,7 +153,7 @@ def generate_calYear_csv(attendances, actual_output, pretty_csvs, sorted_con_nam
     calYear << curr_row
   end
 
-  calYear.transpose, actual_output
+  return calYear.transpose, actual_output
 end
 
 def generate_by_date_attendances(attendance_csv, dates, sorted_con_names, pretty_csvs)
@@ -242,7 +242,7 @@ def generate_twelveMonths_csv(attendances_by_dates, actual_output, pretty_csvs, 
     twelveMonths << curr_row
   end
 
-  twelveMonths.transpose, actual_output
+  return twelveMonths.transpose, actual_output
 end
 
 all_csvs = Array.new
