@@ -47,6 +47,8 @@ end
 def prepare_data(allCSVs)
   formattedData = Hash.new { |hash, key| hash[key] = Hash.new { |h, k| h[k] = ConYear.new } }
   actualOutput = Hash.new { |hash, key| hash[key] = Array.new() }
+  minYear = 3000
+  maxYear = 0
 
   allCSVs.each do |currCon|
     conName = currCon[0][0]
@@ -61,6 +63,8 @@ def prepare_data(allCSVs)
         currDate = Date.strptime(currYear[1], "%m/%d/%Y")
         currDateInt = Integer(currDate.strftime("%j"), 10) - 1
         currDateYear = Integer(currDate.strftime("%Y"))
+        minYear = (currDateYear < minYear ? currDateYear : minYear)
+        maxYear = (currDateYear > maxYear ? currDateYear : maxYear)
         currDateInt = Date.gregorian_leap? currDateYear ? currDateYear + currDateInt.to_f / 366 : currDateYear + currDateInt.to_f / 365
 
         actualOutput[conName + '-date'] << currDateInt
@@ -70,6 +74,10 @@ def prepare_data(allCSVs)
       formattedData[conName][Integer(currYear[0])].set_data(currYear[1], currYear[2])
     end
   end
+
+  maxYear += 1
+  actualOutput['minYear'] = minYear
+  actualOutput['maxYear'] = maxYear
 
   formattedData.each do |conName, conYears|
     conYears.to_a.each_with_index do |arr, i|
