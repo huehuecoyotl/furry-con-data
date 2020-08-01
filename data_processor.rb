@@ -61,7 +61,7 @@ def prepare_data(allCSVs)
         currDate = Date.strptime(currYear[1], "%m/%d/%Y")
         currDateInt = Integer(currDate.strftime("%j"), 10) - 1
         currDateYear = Integer(currDate.strftime("%Y"))
-        currDateInt = Date.gregorian_leap? currDateYear ? currDateYear + currDateInt.to_f / 366 : currDateYear + currDateInt.to_f / 365
+        currDateInt = Date.gregorian_leap?(currDateYear) ? currDateYear + currDateInt.to_f / 366 : currDateYear + currDateInt.to_f / 365
 
         actualOutput[conName + '-date'] << currDateInt
         actualOutput[conName + '-attendance'] << Integer(currYear[2])
@@ -75,13 +75,13 @@ def prepare_data(allCSVs)
     conYears.to_a.each_with_index do |arr, i|
       if i == 0
         prevDate = arr[1].date
-        prevDate = prevDate - Date.gregorian_leap? arr[0] ? 366 : 365
+        prevDate = prevDate - (Date.gregorian_leap?(arr[0]) ? 366 : 365)
         formattedData[conName][arr[0]].set_prev_date prevDate
       else
         prevDate = formattedData[conName][arr[0] - 1].date
         if prevDate == "*" || prevDate == "N/A"
           prevDate = arr[1].date
-          prevDate = prevDate - Date.gregorian_leap? arr[0] ? 366 : 365
+          prevDate = prevDate - (Date.gregorian_leap?(arr[0]) ? 366 : 365)
         end
         formattedData[conName][arr[0]].set_prev_date prevDate
       end
@@ -92,13 +92,13 @@ def prepare_data(allCSVs)
     conYears.to_a.each_with_index do |arr, i|
       if i == 0
         prevDate = arr[1].date
-        prevDate = prevDate - Date.gregorian_leap? arr[0] ? 366 : 365
+        prevDate = prevDate - (Date.gregorian_leap?(arr[0]) ? 366 : 365)
         formattedData[conName][arr[0]].set_prev_date prevDate
       else
         prevDate = formattedData[conName][arr[0] - 1].date
         if prevDate == "*" || prevDate == "N/A"
           prevDate = arr[1].date
-          prevDate = prevDate - Date.gregorian_leap? arr[0] ? 366 : 365
+          prevDate = prevDate - (Date.gregorian_leap?(arr[0]) ? 366 : 365)
         end
         formattedData[conName][arr[0]].set_prev_date prevDate
       end
@@ -109,6 +109,7 @@ def prepare_data(allCSVs)
     currConYears.each do |currYear, currSpecificData|
       formattedData.each do |otherConName, otherConYears|
         next if currConName == otherConName
+        next if currSpecificData.date == "*" || currSpecificData.date == "N/A" || currSpecificData.attendance == "*" || currSpecificData.attendance == 0
 
         competingAttendance = 0
 
@@ -170,13 +171,13 @@ def generate_calendar_year_data(formattedData, actualOutput)
   actualOutput
 end
 
-def generate_twelve_months_data(attendances_by_datesformattedData, actualOutput)
+def generate_twelve_months_data(formattedData, actualOutput)
   formattedData.each do |conName, conYears|
     actualOutput[conName + '-twelveMonths'] << conName
     conYears.each do |year, specificData|
       next if specificData.date == "*" || specificData.date == "N/A" || specificData.attendance == "*" || specificData.attendance == 0
 
-      actualOutput[conName + '-twelveMonths'] << specificData.attendance / (specificData.twelveMonthsAttendance + specificData.attendance)
+      actualOutput[conName + '-twelveMonths'] << specificData.attendance.to_f / (specificData.twelveMonthsAttendance + specificData.attendance)
     end
   end
 
