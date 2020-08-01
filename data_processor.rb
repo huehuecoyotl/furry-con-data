@@ -43,7 +43,7 @@ def prettify_data(all_csvs)
 
       unless curr_year[1] == "*" || curr_year[2] == "*"
         curr_date = Date.strptime(curr_year[1], "%m/%d/%Y")
-        curr_date_int = Integer(curr_date.strftime("%j")) - 1
+        curr_date_int = Integer(curr_date.strftime("%j"), 10) - 1
         curr_date_year = Integer(curr_date.strftime("%Y"))
         curr_date_int = Date.gregorian_leap?(curr_date_year) ? curr_date_year + (curr_date_int / 366) : curr_date_year + (curr_date_int / 365)
 
