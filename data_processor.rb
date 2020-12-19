@@ -134,9 +134,9 @@ def prepare_data(allCSVs)
     conName = currCon[0][0]
     
     currCon.each do |currYear|
-      next unless currYear[1] and currYear[1].is_date_ish?
+      next unless currYear[0].is_date_ish?
 
-      currConYear = ConYear.new(currYear[2], currYear[1])
+      currConYear = ConYear.new(currYear[1], currYear[0])
 
       minYear = (currConYear.date.to_i < minYear ? currConYear.date.to_i : minYear)
       maxYear = (currConYear.date.to_i > maxYear ? currConYear.date.to_i : maxYear)
