@@ -10,15 +10,6 @@ require 'csv'
 require 'date'
 require 'json'
 
-# TFF 2020 finished on March 1, 2020, and is currently the last convention in the dataset before COVID shutdowns began.
-# I have chosen March 11, 2020 as the canonical start of COVID-19 pandemic shutdowns, as that was the day the NBA first began shutting down games.
-BEGINNING_OF_COVID_SHUTDOWNS = SortaDate.new("3/11/2020")
-
-# Megaplex 2021 began on August 5, 2021, and is currently the first convention in the dataset to hold a convention following the beginning of COVID shutdowns.
-# With the reminder that this date does not represent the end of the COVID-19 pandemic, and that this date is used in this codebase to represent when market share measurements can begin being meaningful again
-# I have chosen this date as the canonical end of COVID-19 pandemic shutdowns
-END_OF_COVID_SHUTDOWNS = SortaDate.new("8/5/2021")
-
 class String
     def is_date_ish?
       /\A\d{1,2}\/\d{1,2}\/\d{4}\z/ === self
@@ -146,6 +137,15 @@ class ConYear
   attr_reader :prevCons
 end
 
+# TFF 2020 finished on March 1, 2020, and is currently the last convention in the dataset before COVID shutdowns began.
+# I have chosen March 11, 2020 as the canonical start of COVID-19 pandemic shutdowns, as that was the day the NBA first began shutting down games.
+BEGINNING_OF_COVID_SHUTDOWNS = SortaDate.new("3/11/2020")
+
+# Megaplex 2021 began on August 5, 2021, and is currently the first convention in the dataset to hold a convention following the beginning of COVID shutdowns.
+# With the reminder that this date does not represent the end of the COVID-19 pandemic, and that this date is used in this codebase to represent when market share measurements can begin being meaningful again
+# I have chosen this date as the canonical end of COVID-19 pandemic shutdowns
+END_OF_COVID_SHUTDOWNS = SortaDate.new("8/5/2021")
+
 def prepare_data(allCSVs)
   # formattedData[convention-by-name] = [list of attendances by year]
   formattedData = Hash.new { |hash, key| hash[key] = Array.new }
@@ -220,7 +220,7 @@ def prepare_data(allCSVs)
       actualOutput[conName + '-attendance'] << currYear.attendance
 
       # Do not attempt to display a market share until after a year has passed from the end of covid shutdowns.
-      if currYear.date.to_f > BEGINNING_OF_COVID_SHUTDOWNS and currYear.date.to_f < (END_OF_COVID_SHUTDOWNS + 1)
+      if currYear.date > BEGINNING_OF_COVID_SHUTDOWNS and currYear.date < (END_OF_COVID_SHUTDOWNS + 1)
         actualOutput[conName + '-twelveMonths'] << "*"
       else
         actualOutput[conName + '-twelveMonths'] << (currYear.attendance.to_f / currYear.get_market_share_comparison)
