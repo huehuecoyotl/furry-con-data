@@ -103,6 +103,7 @@ class ConYear
     @prevDate = @date - 1.025
 
     @attendance = Integer(attendance)
+    @prevAttendance = 0
     @prevCons = Array.new
   end
 
@@ -120,6 +121,10 @@ class ConYear
       @prevDate = newDate
       @prevCons.select! {|x| x.date > @prevDate and x.date <= @date}
     end
+  end
+
+  def set_prev_attendance(attendeeCount)
+    @prevAttendance = attendeeCount
   end
 
   # For comparison's sake, conventions that happen on the same weekend as each other are compared to each other by current year, not previous year
@@ -187,6 +192,7 @@ def prepare_data(allCSVs)
   formattedData.each do |conName, conYears|
     conYears.each_with_index do |currYear, i|
       currYear.set_prev_date formattedData[conName][i - 1].date unless i == 0
+      currYear.set_prev_attendance formattedData[conName][i - 1].attendance unless i == 0
     end
   end
 
@@ -205,6 +211,7 @@ def prepare_data(allCSVs)
     actualOutput[conName + '-date'] << (conName + '-date')
     actualOutput[conName + '-attendance'] << conName
     actualOutput[conName + '-twelveMonths'] << conName
+    actualOutput[conName + '-growth'] << conName
     
     conYears.each_with_index do |currYear, i|
       # If there is a gap between iterations of a convention of more than 1.5 years, force the graph to display a discontinuity
@@ -214,10 +221,12 @@ def prepare_data(allCSVs)
         actualOutput[conName + '-date'] << (currYear.date - medianTime).to_f
         actualOutput[conName + '-attendance'] << "*"
         actualOutput[conName + '-twelveMonths'] << "*"
+        actualOutput[conName + '-growth'] << "*"
       end
 
       actualOutput[conName + '-date'] << currYear.date.to_f
       actualOutput[conName + '-attendance'] << currYear.attendance
+      actualOutput[conName + '-growth'] << (currYear.attendance - currYear.prevAttendance).to_f / currYear.prevAttendance
 
       # Do not attempt to display a market share until after a year has passed from the end of covid shutdowns.
       if currYear.date > BEGINNING_OF_COVID_SHUTDOWNS and currYear.date < (END_OF_COVID_SHUTDOWNS + 1)
