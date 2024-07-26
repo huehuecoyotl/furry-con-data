@@ -127,6 +127,14 @@ class ConYear
     @prevAttendance = attendeeCount
   end
 
+  def get_growth()
+    if prevAttendance == 0
+      "*"
+    else
+      (@attendance - @prevAttendance).to_f / @prevAttendance
+    end
+  end
+
   # For comparison's sake, conventions that happen on the same weekend as each other are compared to each other by current year, not previous year
   def add_to_previous_cons(newConYear)
     @prevCons << newConYear if newConYear.date > @prevDate and newConYear.date <= @date
@@ -138,6 +146,7 @@ class ConYear
 
   attr_reader :date
   attr_reader :attendance
+  attr_reader :prevAttendance
   attr_reader :prevDate
   attr_reader :prevCons
 end
@@ -185,8 +194,8 @@ def prepare_data(allCSVs)
   actualOutput['minYear'] = minYear
   actualOutput['maxYear'] = maxYear
 
-  maxAttendances = get_max_attendances formattedData
-  sortedConNames = (maxAttendances.sort_by { |k, v| -v }).map { |n| n[0] }
+  recentAttendances = get_recent_attendances formattedData
+  sortedConNames = (recentAttendances.sort_by { |k, v| -v }).map { |n| n[0] }
   actualOutput["sortOrder"] = sortedConNames
 
   formattedData.each do |conName, conYears|
@@ -195,6 +204,14 @@ def prepare_data(allCSVs)
       currYear.set_prev_attendance formattedData[conName][i - 1].attendance unless i == 0
     end
   end
+
+  allGrowths = get_all_growths formattedData
+  growthStats = get_growth_stats allGrowths
+  actualOutput['avgGrowths'] = growthStats['avg'].sort_by { |n| n[0] }
+  actualOutput['minGrowths'] = growthStats['min'].sort_by { |n| n[0] }
+  actualOutput['minGrowthsNames'] = growthStats['minName'].sort_by { |n| n[0] }
+  actualOutput['maxGrowths'] = growthStats['max'].sort_by { |n| n[0] }
+  actualOutput['maxGrowthsNames'] = growthStats['maxName'].sort_by { |n| n[0] }
 
   # This is hella unoptimized, but the dataset is not yet so big to make this painful.
   # (Attempts to add every convention-year pair to every other convention-year pair's set of conventions in the previous year.
@@ -226,7 +243,7 @@ def prepare_data(allCSVs)
 
       actualOutput[conName + '-date'] << currYear.date.to_f
       actualOutput[conName + '-attendance'] << currYear.attendance
-      actualOutput[conName + '-growth'] << (currYear.attendance - currYear.prevAttendance).to_f / currYear.prevAttendance
+      actualOutput[conName + '-growth'] << currYear.get_growth
 
       # Do not attempt to display a market share until after a year has passed from the end of covid shutdowns.
       if currYear.date > BEGINNING_OF_COVID_SHUTDOWNS and currYear.date < (END_OF_COVID_SHUTDOWNS + 1)
@@ -240,16 +257,55 @@ def prepare_data(allCSVs)
   actualOutput
 end
 
-def get_max_attendances(formattedData)
-  maxAttendances = Hash.new { |hash, key| hash[key] = -Float::INFINITY }
+def get_recent_attendances(formattedData)
+  recentAttendances = Hash.new { |hash, key| hash[key] = 0 }
 
   formattedData.each do |conName, conYears|
+    currDateAssigned = nil
     conYears.each do |currYear|
-      maxAttendances[conName] = currYear.attendance if currYear.attendance > maxAttendances[conName]
+      recentAttendances[conName] = currYear.attendance if currDateAssigned.nil? or currYear.date > currDateAssigned
+      currDateAssigned = currYear.date if currDateAssigned.nil? or currYear.date > currDateAssigned
     end
   end
 
-  maxAttendances
+  recentAttendances
+end
+
+def get_all_growths(formattedData)
+  allGrowths = Hash.new { |hash, key| hash[key] = Hash.new { |hash, key| hash[key] = 0 } }
+
+  formattedData.each do |conName, conYears|
+    conYears.each do |currYear|
+      allGrowths[currYear.date.year][conName] = currYear.get_growth if currYear.prevAttendance != 0
+    end
+  end
+
+  allGrowths
+end
+
+def get_growth_stats(allGrowths)
+  growthStats = Hash.new { |hash, key| hash[key] = Array.new }
+  allGrowths.each do |currYear, conventions|
+    avgGrowth = 0
+    maxGrowth = -Float::INFINITY
+    maxGrowthName = nil
+    minGrowth = Float::INFINITY
+    minGrowthName = nil
+    conventions.each do |conName, currGrowth|
+      avgGrowth = avgGrowth + currGrowth
+      maxGrowthName = conName if currGrowth > maxGrowth
+      maxGrowth = currGrowth if currGrowth > maxGrowth
+      minGrowthName = conName if currGrowth < minGrowth
+      minGrowth = currGrowth if currGrowth < minGrowth
+    end
+    growthStats['avg'] << [currYear, avgGrowth / conventions.length]
+    growthStats['max'] << [currYear, maxGrowth]
+    growthStats['min'] << [currYear, minGrowth]
+    growthStats['maxName'] << [currYear, maxGrowthName]
+    growthStats['minName'] << [currYear, minGrowthName]
+  end
+
+  growthStats
 end
 
 allCSVs = Array.new
