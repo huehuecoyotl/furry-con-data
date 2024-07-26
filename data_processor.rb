@@ -207,7 +207,11 @@ def prepare_data(allCSVs)
 
   allGrowths = get_all_growths formattedData
   totalAttendances = get_total_attendances formattedData
+  puts maxYear
   adjustedPrevYearAttendance = get_adjusted_prev_year_attendance(formattedData, maxYear - 2)
+  puts adjustedPrevYearAttendance
+  puts totalAttendances[maxYear - 2]
+  puts totalAttendances[maxYear - 1]
   growthStats = get_growth_stats(allGrowths, totalAttendances, adjustedPrevYearAttendance, minYear + 1, maxYear)
   actualOutput['Average Growth'] = growthStats['avg'].map { |n| n[1] }
   actualOutput['Average Growth-date'] = growthStats['avg'].map { |n| n[0] }
@@ -302,12 +306,12 @@ end
 
 def get_adjusted_prev_year_attendance(formattedData, prevYear)
   adjustedPrevYearAttendance = 0
-  today = SortaDate.new(Date.today.strftime("%m/%d/%Y"))
+  todayAYearAgo = SortaDate.new(Date.today.strftime("%m/%d/%Y")) - 1
 
   formattedData.each do |conName, conYears|
     conYears.each do |currYear|
       if (currYear == prevYear)
-        adjustedPrevYearAttendance = adjustedPrevYearAttendance + currYear.attendance if currYear.date < today
+        adjustedPrevYearAttendance = adjustedPrevYearAttendance + currYear.attendance if currYear.date < todayAYearAgo
       end
     end
   end
