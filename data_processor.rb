@@ -299,9 +299,12 @@ def get_growth_stats(allGrowths, minYear, maxYear)
       maxGrowth = currGrowth if currGrowth > maxGrowth
       minGrowth = currGrowth if currGrowth < minGrowth
     end
-    growthStats['avg'] << [currYear + 0.5, avgGrowth / conventions.length]
-    growthStats['min'] << [currYear + 0.5, minGrowth]
-    growthStats['max'] << [currYear + 0.5, maxGrowth]
+    growthStats['avg'] << [currYear + 0.003, avgGrowth / conventions.length]
+    growthStats['avg'] << [currYear + 0.997, avgGrowth / conventions.length]
+    growthStats['min'] << [currYear + 0.003, minGrowth]
+    growthStats['min'] << [currYear + 0.997, minGrowth]
+    growthStats['max'] << [currYear + 0.003, maxGrowth]
+    growthStats['max'] << [currYear + 0.997, maxGrowth]
   end
 
   growthStats
