@@ -206,13 +206,13 @@ def prepare_data(allCSVs)
   end
 
   allGrowths = get_all_growths formattedData
-  growthStats = get_growth_stats allGrowths
-  actualOutput['Average Growth'] = growthStats['avg'].sort_by { |n| n[0] }.map { |n| n[1] }
-  actualOutput['Average Growth-date'] = growthStats['avg'].sort_by { |n| n[0] }.map { |n| n[0] }
-  actualOutput['Least Growth'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[1] }
-  actualOutput['Least Growth-date'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[0] }
-  actualOutput['Most Growth'] = growthStats['max'].sort_by { |n| n[0] }.map { |n| n[1] }
-  actualOutput['Most Growth-date'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[0] }
+  growthStats = get_growth_stats(allGrowths, minYear + 1, maxYear)
+  actualOutput['Average Growth'] = growthStats['avg'].map { |n| n[1] }
+  actualOutput['Average Growth-date'] = growthStats['avg'].map { |n| n[0] }
+  actualOutput['Least Growth'] = growthStats['min'].map { |n| n[1] }
+  actualOutput['Least Growth-date'] = growthStats['min'].map { |n| n[0] }
+  actualOutput['Most Growth'] = growthStats['max'].map { |n| n[1] }
+  actualOutput['Most Growth-date'] = growthStats['min'].map { |n| n[0] }
 
   # This is hella unoptimized, but the dataset is not yet so big to make this painful.
   # (Attempts to add every convention-year pair to every other convention-year pair's set of conventions in the previous year.
@@ -284,12 +284,13 @@ def get_all_growths(formattedData)
   allGrowths
 end
 
-def get_growth_stats(allGrowths)
+def get_growth_stats(allGrowths, minYear, maxYear)
   growthStats = Hash.new { |hash, key| hash[key] = Array.new }
   growthStats['avg'] << ["Average Growth-date", "Average Growth"]
   growthStats['min'] << ["Least Growth-date", "Least Growth"]
   growthStats['max'] << ["Most Growth-date", "Most Growth"]
-  allGrowths.each do |currYear, conventions|
+  (minYear...maxYear).each do |currYear|
+    conventions = allGrowths[currYear]
     avgGrowth = 0
     maxGrowth = -Float::INFINITY
     minGrowth = Float::INFINITY
