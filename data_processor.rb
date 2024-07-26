@@ -277,7 +277,7 @@ def get_all_growths(formattedData)
 
   formattedData.each do |conName, conYears|
     conYears.each do |currYear|
-      allGrowths[currYear.date.year][conName] = currYear.get_growth if currYear.prevAttendance != 0
+      allGrowths[currYear.date.year][conName] = [currYear.get_growth, currYear.attendance] if currYear.prevAttendance != 0
     end
   end
 
@@ -292,16 +292,18 @@ def get_growth_stats(allGrowths, minYear, maxYear)
   (minYear...maxYear).each do |currYear|
     conventions = allGrowths[currYear]
     avgGrowth = 0
+    divisor = 0
     maxGrowth = -Float::INFINITY
     minGrowth = Float::INFINITY
-    conventions.each do |conName, currGrowth|
-      avgGrowth = avgGrowth + currGrowth
-      maxGrowth = currGrowth if currGrowth > maxGrowth
-      minGrowth = currGrowth if currGrowth < minGrowth
+    conventions.each do |conName, values|
+      avgGrowth = avgGrowth + values[0] * values[1]
+      divisor = divisor + values[1]
+      maxGrowth = values[0] if values[0] > maxGrowth
+      minGrowth = values[0] if values[0] < minGrowth
     end
-    growthStats['avg'] << [currYear + 0.5, avgGrowth / conventions.length]
-    growthStats['min'] << [currYear + 0.5, minGrowth]
-    growthStats['max'] << [currYear + 0.5, maxGrowth]
+    growthStats['avg'] << [currYear + 0.5, avgGrowth / divisor] unless divisor == 0
+    growthStats['min'] << [currYear + 0.5, minGrowth] unless divisor == 0
+    growthStats['max'] << [currYear + 0.5, maxGrowth] unless divisor == 0
   end
 
   growthStats
