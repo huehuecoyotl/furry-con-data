@@ -206,7 +206,8 @@ def prepare_data(allCSVs)
   end
 
   allGrowths = get_all_growths formattedData
-  growthStats = get_growth_stats(allGrowths, minYear + 1, maxYear)
+  totalAttendances = get_total_attendances formattedData
+  growthStats = get_growth_stats(allGrowths, totalAttendances, minYear + 1, maxYear)
   actualOutput['Average Growth'] = growthStats['avg'].map { |n| n[1] }
   actualOutput['Average Growth-date'] = growthStats['avg'].map { |n| n[0] }
   actualOutput['Least Growth'] = growthStats['min'].map { |n| n[1] }
@@ -284,26 +285,34 @@ def get_all_growths(formattedData)
   allGrowths
 end
 
-def get_growth_stats(allGrowths, minYear, maxYear)
+def get_total_attendances(formattedData)
+  totalAttendances = Hash.new { |hash, key| hash[key] = 0 }
+
+  formattedData.each do |conName, conYears|
+    conYears.each do |currYear|
+      totalAttendances[currYear.date.year] = totalAttendances[currYear.date.year] + currYear.attendance
+    end
+  end
+
+  totalAttendances
+end
+
+def get_growth_stats(allGrowths, totalAttendances, minYear, maxYear)
   growthStats = Hash.new { |hash, key| hash[key] = Array.new }
   growthStats['avg'] << ["Average Growth-date", "Average Growth"]
   growthStats['min'] << ["Least Growth-date", "Least Growth"]
   growthStats['max'] << ["Most Growth-date", "Most Growth"]
   (minYear...maxYear).each do |currYear|
     conventions = allGrowths[currYear]
-    avgGrowth = 0
-    divisor = 0
     maxGrowth = -Float::INFINITY
     minGrowth = Float::INFINITY
     conventions.each do |conName, values|
-      avgGrowth = avgGrowth + values[0] * values[1]
-      divisor = divisor + values[1]
       maxGrowth = values[0] if values[0] > maxGrowth
       minGrowth = values[0] if values[0] < minGrowth
     end
-    growthStats['avg'] << [currYear + 0.5, avgGrowth / divisor] unless divisor == 0
-    growthStats['min'] << [currYear + 0.5, minGrowth] unless divisor == 0
-    growthStats['max'] << [currYear + 0.5, maxGrowth] unless divisor == 0
+    growthStats['avg'] << [currYear + 0.5, (totalAttendances[currYear] - totalAttendances[currYear - 1]).to_f / (totalAttendances[currYear - 1])] unless currYear == minYear
+    growthStats['min'] << [currYear + 0.5, minGrowth] unless currYear == minYear
+    growthStats['max'] << [currYear + 0.5, maxGrowth] unless currYear == minYear
   end
 
   growthStats
