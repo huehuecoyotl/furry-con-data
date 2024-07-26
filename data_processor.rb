@@ -207,7 +207,8 @@ def prepare_data(allCSVs)
 
   allGrowths = get_all_growths formattedData
   totalAttendances = get_total_attendances formattedData
-  growthStats = get_growth_stats(allGrowths, totalAttendances, minYear + 1, maxYear)
+  adjustedPrevYearAttendance = get_adjusted_prev_year_attendance formattedData
+  growthStats = get_growth_stats(allGrowths, totalAttendances, adjustedPrevYearAttendance, minYear + 1, maxYear)
   actualOutput['Average Growth'] = growthStats['avg'].map { |n| n[1] }
   actualOutput['Average Growth-date'] = growthStats['avg'].map { |n| n[0] }
   actualOutput['Total Growth'] = growthStats['tot'].map { |n| n[1] }
@@ -299,7 +300,22 @@ def get_total_attendances(formattedData)
   totalAttendances
 end
 
-def get_growth_stats(allGrowths, totalAttendances, minYear, maxYear)
+def get_adjusted_prev_year_attendance(formattedData, prevYear)
+  adjustedPrevYearAttendance = 0
+  today = SortaDate.new(Date.today.strftime("%m/%d/%Y"))
+
+  formattedData.each do |conName, conYears|
+    conYears.each do |currYear|
+      if (currYear == prevYear) do
+        adjustedPrevYearAttendance = adjustedPrevYearAttendance + currYear.attendance if currYear.date < today
+      end
+    end
+  end
+
+  adjustedPrevYearAttendance
+end
+
+def get_growth_stats(allGrowths, totalAttendances, adjustedPrevYearAttendance, minYear, maxYear)
   growthStats = Hash.new { |hash, key| hash[key] = Array.new }
   growthStats['avg'] << ["Average Growth-date", "Average Growth"]
   growthStats['tot'] << ["Total Growth-date", "Total Growth"]
@@ -318,7 +334,8 @@ def get_growth_stats(allGrowths, totalAttendances, minYear, maxYear)
       minGrowth = values[0] if values[0] < minGrowth
     end
     growthStats['avg'] << [currYear + 0.5, avgGrowth / divisor] unless divisor == 0
-    growthStats['tot'] << [currYear + 0.5, (totalAttendances[currYear] - totalAttendances[currYear - 1]).to_f / (totalAttendances[currYear - 1])] unless divisor == 0
+    growthStats['tot'] << [currYear + 0.5, (totalAttendances[currYear] - totalAttendances[currYear - 1]).to_f / (totalAttendances[currYear - 1])] unless divisor == 0 or currYear == maxYear
+    growthStats['tot'] << [currYear + 0.5, (totalAttendances[currYear] - adjustedPrevYearAttendance).to_f / adjustedPrevYearAttendance] if currYear == maxYear
     growthStats['min'] << [currYear + 0.5, minGrowth] unless divisor == 0
     growthStats['max'] << [currYear + 0.5, maxGrowth] unless divisor == 0
   end
