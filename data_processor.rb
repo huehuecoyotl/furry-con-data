@@ -208,11 +208,11 @@ def prepare_data(allCSVs)
   allGrowths = get_all_growths formattedData
   growthStats = get_growth_stats allGrowths
   actualOutput['Average Growth'] = growthStats['avg'].sort_by { |n| n[0] }.map { |n| n[1] }
-  actualOutput['Average Growth-date'] = growthStats['avg'].sort_by { |n| n[0] }.map { |n| n[0] + 0.5 }
+  actualOutput['Average Growth-date'] = growthStats['avg'].sort_by { |n| n[0] }.map { |n| n[0] }
   actualOutput['Least Growth'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[1] }
-  actualOutput['Least Growth-date'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[0] + 0.5 }
+  actualOutput['Least Growth-date'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[0] }
   actualOutput['Most Growth'] = growthStats['max'].sort_by { |n| n[0] }.map { |n| n[1] }
-  actualOutput['Most Growth-date'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[0] + 0.5 }
+  actualOutput['Most Growth-date'] = growthStats['min'].sort_by { |n| n[0] }.map { |n| n[0] }
 
   # This is hella unoptimized, but the dataset is not yet so big to make this painful.
   # (Attempts to add every convention-year pair to every other convention-year pair's set of conventions in the previous year.
@@ -286,24 +286,21 @@ end
 
 def get_growth_stats(allGrowths)
   growthStats = Hash.new { |hash, key| hash[key] = Array.new }
+  growthStats['avg'] << ["Average Growth-date", "Average Growth"]
+  growthStats['min'] << ["Least Growth-date", "Least Growth"]
+  growthStats['max'] << ["Most Growth-date", "Most Growth"]
   allGrowths.each do |currYear, conventions|
     avgGrowth = 0
     maxGrowth = -Float::INFINITY
-    maxGrowthName = nil
     minGrowth = Float::INFINITY
-    minGrowthName = nil
     conventions.each do |conName, currGrowth|
       avgGrowth = avgGrowth + currGrowth
-      maxGrowthName = conName if currGrowth > maxGrowth
       maxGrowth = currGrowth if currGrowth > maxGrowth
-      minGrowthName = conName if currGrowth < minGrowth
       minGrowth = currGrowth if currGrowth < minGrowth
     end
-    growthStats['avg'] << [currYear, avgGrowth / conventions.length]
-    growthStats['max'] << [currYear, maxGrowth]
-    growthStats['min'] << [currYear, minGrowth]
-    growthStats['maxName'] << [currYear, maxGrowthName]
-    growthStats['minName'] << [currYear, minGrowthName]
+    growthStats['avg'] << [currYear + 0.5, avgGrowth / conventions.length]
+    growthStats['min'] << [currYear + 0.5, minGrowth]
+    growthStats['max'] << [currYear + 0.5, maxGrowth]
   end
 
   growthStats
