@@ -201,6 +201,10 @@ def prepare_data(allCSVs)
 
   actualOutput["consByCategory"] = consByCategory
 
+  recentAttendances = get_recent_attendances formattedData
+  sortedConNames = (recentAttendances.sort_by { |k, v| -v }).map { |n| n[0] }
+  actualOutput["sortOrder"] = sortedConNames
+
   formattedData.each do |conName, conYears|
     conYears.each_with_index do |currYear, i|
       currYear.set_prev_date formattedData[conName][i - 1].date unless i == 0
