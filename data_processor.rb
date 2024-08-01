@@ -171,12 +171,15 @@ def prepare_data(allCSVs)
   # actualOutput[convention-by-name + '-attendance'] = [list of named convention's attendances]
   # actualOutput[convention-by-name + '-twelveMonths'] = [list of named convention's market shares]
   actualOutput = Hash.new { |hash, key| hash[key] = Array.new }
+
+  consByCategory = Hash.new { |hash, key| hash[key] = Array.new }
   
   minYear = Float::INFINITY
   maxYear = -Float::INFINITY 
 
   allCSVs.each do |currCon|
     conName = currCon[0][0]
+    conCategory = currCon[0][1]
     
     currCon.each do |currYear|
       next unless currYear[0].is_date_ish?
@@ -188,15 +191,15 @@ def prepare_data(allCSVs)
 
       formattedData[conName] << currConYear
     end
+
+    consByCategory[conCategory] << conName
   end
 
   maxYear += 1
   actualOutput['minYear'] = minYear
   actualOutput['maxYear'] = maxYear
 
-  recentAttendances = get_recent_attendances formattedData
-  sortedConNames = (recentAttendances.sort_by { |k, v| -v }).map { |n| n[0] }
-  actualOutput["sortOrder"] = sortedConNames
+  actualOutput["consByCategory"] = consByCategory
 
   formattedData.each do |conName, conYears|
     conYears.each_with_index do |currYear, i|
@@ -207,11 +210,7 @@ def prepare_data(allCSVs)
 
   allGrowths = get_all_growths formattedData
   totalAttendances = get_total_attendances formattedData
-  puts maxYear
   adjustedPrevYearAttendance = get_adjusted_prev_year_attendance(formattedData, maxYear - 2)
-  puts adjustedPrevYearAttendance
-  puts totalAttendances[maxYear - 2]
-  puts totalAttendances[maxYear - 1]
   growthStats = get_growth_stats(allGrowths, totalAttendances, adjustedPrevYearAttendance, minYear + 1, maxYear)
   actualOutput['Average Growth'] = growthStats['avg'].map { |n| n[1] }
   actualOutput['Average Growth-date'] = growthStats['avg'].map { |n| n[0] }
@@ -307,7 +306,6 @@ end
 def get_adjusted_prev_year_attendance(formattedData, prevYear)
   adjustedPrevYearAttendance = 0
   todayAYearAgo = SortaDate.new(Date.today.strftime("%m/%d/%Y")) - 1
-  puts todayAYearAgo
 
   formattedData.each do |conName, conYears|
     conYears.each do |currYear|
